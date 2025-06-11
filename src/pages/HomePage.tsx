@@ -1,1 +1,1 @@
-// Homepage with buttons for Client, Staff, and Prospective login
+// Homepage with login options

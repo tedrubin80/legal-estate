@@ -1,1 +1,1 @@
-// Reset password page
+// Password reset request page

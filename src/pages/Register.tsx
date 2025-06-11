@@ -1,1 +1,1 @@
-// Register page for prospective users
+// Prospective user registration page

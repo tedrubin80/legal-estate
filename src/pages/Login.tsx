@@ -1,1 +1,1 @@
-// Login page with role-specific rendering and reset/register links
+// LoginPage handling client/staff/prospective roles
