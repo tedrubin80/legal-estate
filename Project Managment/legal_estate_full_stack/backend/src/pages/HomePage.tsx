@@ -1,1 +1,0 @@
-// Homepage with login options
