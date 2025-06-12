@@ -1,0 +1,300 @@
+// backend/nest-cli.json
+{
+  "$schema": "https://json.schemastore.org/nest-cli",
+  "collection": "@nestjs/schematics",
+  "sourceRoot": "src",
+  "compilerOptions": {
+    "deleteOutDir": true
+  }
+}
+
+// backend/.env.example
+DATABASE_URL=postgresql://postgres:postgres@localhost:5432/legalcase
+JWT_SECRET=supersecretkey-change-this-in-production
+PORT=3001
+FRONTEND_URL=http://localhost:3000
+
+# Optional: For production
+# DATABASE_URL=postgresql://user:password@host:port/database
+# JWT_SECRET=your-super-secure-secret-key
+# PORT=3001
+# NODE_ENV=production
+
+// frontend/.env.example  
+REACT_APP_API_URL=http://localhost:3001/api
+
+# For production:
+# REACT_APP_API_URL=https://your-api-domain.com/api
+
+// backend/.eslintrc.js
+module.exports = {
+  parser: '@typescript-eslint/parser',
+  parserOptions: {
+    project: 'tsconfig.json',
+    tsconfigRootDir: __dirname,
+    sourceType: 'module',
+  },
+  plugins: ['@typescript-eslint/eslint-plugin'],
+  extends: [
+    '@typescript-eslint/recommended',
+    'plugin:prettier/recommended',
+  ],
+  root: true,
+  env: {
+    node: true,
+    jest: true,
+  },
+  ignorePatterns: ['.eslintrc.js'],
+  rules: {
+    '@typescript-eslint/interface-name-prefix': 'off',
+    '@typescript-eslint/explicit-function-return-type': 'off',
+    '@typescript-eslint/explicit-module-boundary-types': 'off',
+    '@typescript-eslint/no-explicit-any': 'off',
+  },
+};
+
+// backend/.prettierrc
+{
+  "singleQuote": true,
+  "trailingComma": "all"
+}
+
+// frontend/.eslintrc.cjs
+module.exports = {
+  root: true,
+  env: { browser: true, es2020: true },
+  extends: [
+    'eslint:recommended',
+    '@typescript-eslint/recommended',
+    'plugin:react-hooks/recommended',
+  ],
+  ignorePatterns: ['dist', '.eslintrc.cjs'],
+  parser: '@typescript-eslint/parser',
+  plugins: ['react-refresh'],
+  rules: {
+    'react-refresh/only-export-components': [
+      'warn',
+      { allowConstantExport: true },
+    ],
+  },
+}
+
+// frontend/index.html
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.ico" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Legal Estate - Case Management System</title>
+    <meta name="description" content="Secure legal case management platform for law firms and clients" />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/index.tsx"></script>
+  </body>
+</html>
+
+// README.md (Updated)
+# Legal Estate
+
+Legal Estate is a secure, modern legal case management system designed for law firms and clients. It supports secure logins, role-based dashboards, file uploads, and compliance features (HIPAA/GDPR ready).
+
+## ✨ Features
+
+- **Role-based Authentication**: Client, Staff, and Prospective user roles
+- **Secure JWT Authentication** with password hashing
+- **User Registration** and password reset functionality  
+- **Dashboard Views** with case records and statistics
+- **Case Management** with detailed tracking and status updates
+- **Modern UI** with responsive design using Tailwind CSS
+- **Database Integration** with PostgreSQL and Prisma ORM
+- **Docker Support** for easy development setup
+- **TypeScript** throughout for type safety
+
+## 🏗️ Technology Stack
+
+### Backend
+- **NestJS** - Progressive Node.js framework
+- **Prisma** - Next-generation ORM
+- **PostgreSQL** - Robust relational database
+- **JWT** - Secure authentication
+- **bcrypt** - Password hashing
+- **class-validator** - Input validation
+
+### Frontend  
+- **React 18** - Modern UI library
+- **TypeScript** - Type-safe JavaScript
+- **React Router** - Client-side routing
+- **Tailwind CSS** - Utility-first CSS framework
+- **Vite** - Fast build tool
+
+## 🚀 Quick Start
+
+### Prerequisites
+
+- Node.js (v18+)
+- Docker & Docker Compose
+- Git
+
+### Setup
+
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/yourusername/legal-estate.git
+   cd legal-estate
+   ```
+
+2. **Start with Docker (Recommended)**
+   ```bash
+   docker-compose up --build
+   ```
+
+3. **Or run manually**:
+   
+   **Backend setup:**
+   ```bash
+   cd backend
+   npm install
+   cp .env.example .env
+   # Edit .env with your database settings
+   npx prisma generate
+   npx prisma db push
+   npm run start:dev
+   ```
+   
+   **Frontend setup:**
+   ```bash
+   cd frontend  
+   npm install
+   cp .env.example .env
+   npm run dev
+   ```
+
+4. **Access the application**:
+   - Frontend: `http://localhost:3000`
+   - Backend API: `http://localhost:3001/api`
+   - API Health Check: `http://localhost:3001/api/health`
+
+## 📁 Project Structure
+
+```
+legal-estate/
+├── backend/              # NestJS API server
+│   ├── src/
+│   │   ├── auth/        # Authentication module
+│   │   ├── users/       # User management
+│   │   ├── cases/       # Case management  
+│   │   └── database/    # Database configuration
+│   ├── prisma/          # Database schema
+│   └── package.json
+│
+├── frontend/            # React client
+│   ├── src/
+│   │   ├── components/  # Reusable components
+│   │   ├── pages/       # Page components
+│   │   ├── contexts/    # React contexts
+│   │   └── services/    # API services
+│   └── package.json
+│
+└── docker-compose.yml   # Development orchestration
+```
+
+## 🔐 User Roles
+
+- **Client**: View own cases, track progress, upload documents
+- **Staff**: Manage all cases, create new cases, assign staff
+- **Prospective**: Register and request consultation
+
+## 🛠️ Development
+
+### Backend Commands
+```bash
+cd backend
+npm run start:dev      # Development server
+npm run build          # Production build
+npm run test           # Run tests
+npm run db:generate    # Generate Prisma client
+npm run db:push        # Push schema changes
+npm run db:studio      # Open Prisma Studio
+```
+
+### Frontend Commands  
+```bash
+cd frontend
+npm run dev            # Development server
+npm run build          # Production build
+npm run preview        # Preview production build
+npm run lint           # Lint code
+```
+
+## 🔧 Environment Variables
+
+### Backend (.env)
+```env
+DATABASE_URL=postgresql://postgres:postgres@localhost:5432/legalcase
+JWT_SECRET=your-super-secure-secret
+PORT=3001
+FRONTEND_URL=http://localhost:3000
+```
+
+### Frontend (.env)
+```env
+REACT_APP_API_URL=http://localhost:3001/api
+```
+
+## 📊 Database Schema
+
+### Users
+- Authentication with email/password
+- Role-based access (client, staff, prospective)
+- Profile information
+
+### Cases  
+- Case details and descriptions
+- Status tracking (pending, active, closed, on_hold)
+- Case types (family_law, criminal_law, etc.)
+- Client and staff assignment
+
+## 🚢 Deployment
+
+### Production Build
+```bash
+# Backend
+cd backend
+npm run build
+npm run start:prod
+
+# Frontend  
+cd frontend
+npm run build
+# Serve dist/ folder with your web server
+```
+
+### Docker Production
+```bash
+docker-compose -f docker-compose.prod.yml up --build
+```
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Add tests if needed
+5. Submit a pull request
+
+## 📄 License
+
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+
+## 🆘 Support
+
+For support and questions:
+- Create an issue on GitHub
+- Check the documentation
+- Review the API endpoints at `/api/health`
+
+---
+
+**Legal Estate** - Streamlining legal case management with modern technology.
