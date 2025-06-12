@@ -1,1 +1,0 @@
-// React Dashboard page showing list of cases

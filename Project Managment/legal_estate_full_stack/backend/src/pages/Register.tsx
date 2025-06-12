@@ -1,1 +1,0 @@
-// Prospective user registration page
