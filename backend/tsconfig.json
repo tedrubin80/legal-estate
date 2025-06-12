@@ -1,1 +1,1 @@
-{... final tsconfig for NestJS ...}
+{ "compilerOptions": { "module": "commonjs" } }

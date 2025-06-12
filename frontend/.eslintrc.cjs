@@ -1,1 +1,1 @@
-module.exports = { ... React and TS rules ... };
+module.exports = { extends: ['react-app'] };

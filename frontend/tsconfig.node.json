@@ -1,1 +1,1 @@
-{... separate tsconfig for Node ...}
+{ "compilerOptions": { "module": "commonjs" } }
