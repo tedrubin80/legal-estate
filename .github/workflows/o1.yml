@@ -1,0 +1,423 @@
+# .github/workflows/organize-repo.yml
+name: 🗂️ Repository 
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch: # Manual trigger
+  schedule:
+    - cron: '0 2 * * 1' # Weekly on Monday at 2 AM
+
+jobs:
+  organize-structure:
+    name: 🏗️ Organize Repository Structure
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 🔄 Checkout Repository
+      uses: actions/checkout@v4
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        fetch-depth: 0
+    
+    - name: 📁 Create Standard Directory Structure
+      run: |
+        echo "🏗️ Creating standard directory structure..."
+        
+        # Core directories
+        mkdir -p {backend,frontend,scripts,docs,tests,.github/workflows}
+        mkdir -p backend/{src,dist,prisma,tests}
+        mkdir -p backend/src/{controllers,middleware,routes,utils,types}
+        mkdir -p frontend/{src,public,build}
+        mkdir -p frontend/src/{components,services,types,utils,styles}
+        mkdir -p docs/{api,user-guide,development,deployment}
+        mkdir -p scripts/{deployment,database,development,maintenance}
+        mkdir -p tests/{integration,e2e,fixtures}
+        
+        echo "✅ Directory structure created"
+    
+    - name: 🔧 Organize Misplaced Files
+      run: |
+        echo "🔧 Organizing misplaced files..."
+        
+        # Move deployment scripts to proper location
+        find . -name "deploy*.sh" -not -path "./scripts/*" -exec mv {} scripts/deployment/ \; 2>/dev/null || true
+        find . -name "*deploy*.sh" -not -path "./scripts/*" -exec mv {} scripts/deployment/ \; 2>/dev/null || true
+        
+        # Move database scripts
+        find . -name "*prisma*.sh" -not -path "./scripts/*" -exec mv {} scripts/database/ \; 2>/dev/null || true
+        find . -name "*neon*.sh" -not -path "./scripts/*" -exec mv {} scripts/database/ \; 2>/dev/null || true
+        find . -name "*schema*.sh" -not -path "./scripts/*" -exec mv {} scripts/database/ \; 2>/dev/null || true
+        
+        # Move setup and installation scripts
+        find . -name "setup*.sh" -not -path "./scripts/*" -exec mv {} scripts/development/ \; 2>/dev/null || true
+        find . -name "install*.sh" -not -path "./scripts/*" -exec mv {} scripts/development/ \; 2>/dev/null || true
+        find . -name "*install*.sh" -not -path "./scripts/*" -exec mv {} scripts/development/ \; 2>/dev/null || true
+        
+        # Move maintenance scripts
+        find . -name "*backup*.sh" -not -path "./scripts/*" -exec mv {} scripts/maintenance/ \; 2>/dev/null || true
+        find . -name "*restore*.sh" -not -path "./scripts/*" -exec mv {} scripts/maintenance/ \; 2>/dev/null || true
+        find . -name "*health*.sh" -not -path "./scripts/*" -exec mv {} scripts/maintenance/ \; 2>/dev/null || true
+        find . -name "*update*.sh" -not -path "./scripts/*" -exec mv {} scripts/maintenance/ \; 2>/dev/null || true
+        
+        # Move documentation files
+        find . -name "*.md" -not -path "./docs/*" -not -name "README.md" -exec mv {} docs/ \; 2>/dev/null || true
+        
+        # Move any loose controller files
+        find . -name "*controller*.ts" -not -path "./backend/src/controllers/*" -exec mv {} backend/src/controllers/ \; 2>/dev/null || true
+        
+        echo "✅ Files organized"
+    
+    - name: 🔐 Set Proper File Permissions
+      run: |
+        echo "🔐 Setting proper file permissions..."
+        
+        # Make all shell scripts executable
+        find . -name "*.sh" -exec chmod +x {} \;
+        
+        # Set proper permissions for config files
+        find . -name ".env*" -exec chmod 600 {} \; 2>/dev/null || true
+        find . -name "*.key" -exec chmod 600 {} \; 2>/dev/null || true
+        find . -name "*.pem" -exec chmod 600 {} \; 2>/dev/null || true
+        
+        # Set directory permissions
+        find . -type d -exec chmod 755 {} \;
+        find . -type f -name "*.js" -o -name "*.ts" -o -name "*.json" -exec chmod 644 {} \;
+        
+        echo "✅ Permissions set"
+    
+    - name: 📝 Validate Essential Files
+      run: |
+        echo "📝 Validating essential files..."
+        
+        # Check for required root files
+        required_files=(
+          "package.json"
+          "docker-compose.yml"
+          "Dockerfile.backend"
+          "Dockerfile.frontend"
+          "README.md"
+          ".gitignore"
+        )
+        
+        missing_files=()
+        for file in "${required_files[@]}"; do
+          if [[ ! -f "$file" ]]; then
+            missing_files+=("$file")
+          fi
+        done
+        
+        # Check for required backend files
+        backend_files=(
+          "backend/package.json"
+          "backend/tsconfig.json"
+          "backend/prisma/schema.prisma"
+          "backend/.env.example"
+        )
+        
+        for file in "${backend_files[@]}"; do
+          if [[ ! -f "$file" ]]; then
+            missing_files+=("$file")
+          fi
+        done
+        
+        # Check for required frontend files
+        frontend_files=(
+          "frontend/package.json"
+          "frontend/tsconfig.json"
+          "frontend/public/index.html"
+        )
+        
+        for file in "${frontend_files[@]}"; do
+          if [[ ! -f "$file" ]]; then
+            missing_files+=("$file")
+          fi
+        done
+        
+        if [ ${#missing_files[@]} -gt 0 ]; then
+          echo "❌ Missing required files:"
+          printf '%s\n' "${missing_files[@]}"
+          echo "::error::Missing required files. Please ensure all essential files are present."
+          exit 1
+        else
+          echo "✅ All essential files present"
+        fi
+    
+    - name: 🏷️ Create Scripts Index
+      run: |
+        echo "🏷️ Creating scripts index..."
+        
+        cat > scripts/README.md << 'EOF'
+        # Scripts Directory
+        
+        This directory contains all automation scripts for the Legal Practice Management Software.
+        
+        ## Directory Structure
+        
+        ### 📦 Development (`/development/`)
+        - `setup.sh` - Initial project setup
+        - `install.sh` - Install dependencies
+        - Development environment scripts
+        
+        ### 🚀 Deployment (`/deployment/`)
+        - `deploy.sh` - Main deployment script
+        - `docker-deploy.sh` - Docker-specific deployment
+        - Cloud deployment scripts
+        
+        ### 🗄️ Database (`/database/`)
+        - `setup-neon.sh` - Neon database setup
+        - `migrate.sh` - Database migrations
+        - `seed.sh` - Database seeding
+        - `backup.sh` - Database backup
+        
+        ### 🔧 Maintenance (`/maintenance/`)
+        - `health-check.sh` - System health monitoring
+        - `update.sh` - System updates
+        - `backup-restore.sh` - Backup and restore operations
+        - `cleanup.sh` - System cleanup
+        
+        ## Usage
+        
+        All scripts should be run from the project root directory:
+        
+        ```bash
+        # Setup new installation
+        ./scripts/development/setup.sh
+        
+        # Deploy application
+        ./scripts/deployment/deploy.sh
+        
+        # Check system health
+        ./scripts/maintenance/health-check.sh
+        ```
+        
+        ## Prerequisites
+        
+        - Docker & Docker Compose
+        - Node.js 18+
+        - PostgreSQL (or Neon account)
+        - Git
+        EOF
+        
+        echo "✅ Scripts index created"
+    
+    - name: 📋 Generate Project Structure Map
+      run: |
+        echo "📋 Generating project structure map..."
+        
+        cat > PROJECT_STRUCTURE.md << 'EOF'
+        # Legal Practice Management Software - Project Structure
+        
+        ```
+        legal-software/
+        ├── 📁 backend/                    # Backend API (Node.js + TypeScript)
+        │   ├── 📁 src/
+        │   │   ├── 📁 controllers/        # API route controllers
+        │   │   ├── 📁 middleware/         # Express middleware
+        │   │   ├── 📁 routes/             # API routes
+        │   │   ├── 📁 utils/              # Utility functions
+        │   │   ├── 📁 types/              # TypeScript type definitions
+        │   │   ├── 📄 app.ts               # Express app configuration
+        │   │   └── 📄 server.ts            # Server entry point
+        │   ├── 📁 prisma/                 # Database schema & migrations
+        │   │   └── 📄 schema.prisma        # Prisma schema
+        │   ├── 📁 tests/                  # Backend tests
+        │   ├── 📄 package.json             # Backend dependencies
+        │   ├── 📄 tsconfig.json           # TypeScript configuration
+        │   └── 📄 .env.example             # Environment variables template
+        │
+        ├── 📁 frontend/                   # Frontend React App
+        │   ├── 📁 src/
+        │   │   ├── 📁 components/         # React components
+        │   │   ├── 📁 services/           # API services
+        │   │   ├── 📁 types/              # TypeScript types
+        │   │   ├── 📁 utils/              # Utility functions
+        │   │   ├── 📁 styles/             # CSS/styling
+        │   │   ├── 📄 App.tsx              # Main App component
+        │   │   └── 📄 index.tsx            # React entry point
+        │   ├── 📁 public/                 # Static assets
+        │   ├── 📄 package.json             # Frontend dependencies
+        │   └── 📄 tsconfig.json           # TypeScript configuration
+        │
+        ├── 📁 scripts/                   # Automation scripts
+        │   ├── 📁 deployment/            # Deployment scripts
+        │   ├── 📁 database/              # Database scripts
+        │   ├── 📁 development/           # Development scripts
+        │   ├── 📁 maintenance/           # Maintenance scripts
+        │   └── 📄 README.md               # Scripts documentation
+        │
+        ├── 📁 docs/                      # Documentation
+        │   ├── 📁 api/                   # API documentation
+        │   ├── 📁 user-guide/            # User guides
+        │   ├── 📁 development/           # Development docs
+        │   └── 📁 deployment/            # Deployment guides
+        │
+        ├── 📁 tests/                     # Integration & E2E tests
+        │   ├── 📁 integration/           # Integration tests
+        │   ├── 📁 e2e/                   # End-to-end tests
+        │   └── 📁 fixtures/              # Test data
+        │
+        ├── 📁 .github/                   # GitHub configuration
+        │   ├── 📁 workflows/             # GitHub Actions
+        │   ├── 📁 actions/               # Custom actions
+        │   └── 📁 ISSUE_TEMPLATE/        # Issue templates
+        │
+        ├── 📄 docker-compose.yml          # Docker services configuration
+        ├── 📄 Dockerfile.backend          # Backend Docker image
+        ├── 📄 Dockerfile.frontend         # Frontend Docker image
+        ├── 📄 README.md                    # Project overview
+        ├── 📄 .gitignore                   # Git ignore rules
+        └── 📄 PROJECT_STRUCTURE.md        # This file
+        ```
+        
+        ## Quick Start
+        
+        1. **Setup**: `./scripts/development/setup.sh`
+        2. **Deploy**: `./scripts/deployment/deploy.sh`
+        3. **Access**: http://localhost:3000
+        
+        ## Key Technologies
+        
+        - **Backend**: Node.js, Express, TypeScript, Prisma
+        - **Frontend**: React, TypeScript, React Query
+        - **Database**: PostgreSQL (Neon)
+        - **Infrastructure**: Docker, GitHub Actions
+        - **Security**: JWT, bcrypt, Helmet, CORS
+        EOF
+        
+        echo "✅ Project structure map generated"
+    
+    - name: 🧹 Clean Up Duplicate Files
+      run: |
+        echo "🧹 Cleaning up duplicate files..."
+        
+        # Remove duplicate Dockerfiles in wrong locations
+        find . -name "Dockerfile*" -not -path "./*Dockerfile.backend" -not -path "./*Dockerfile.frontend" -delete 2>/dev/null || true
+        
+        # Remove duplicate package.json files in wrong locations
+        find . -name "package.json" -not -path "./backend/*" -not -path "./frontend/*" -not -path "./package.json" -delete 2>/dev/null || true
+        
+        # Remove duplicate env files
+        find . -name ".env*" -not -path "./backend/*" -not -path "./frontend/*" -delete 2>/dev/null || true
+        
+        # Remove backup files
+        find . -name "*.backup" -delete 2>/dev/null || true
+        find . -name "*~" -delete 2>/dev/null || true
+        
+        echo "✅ Cleanup completed"
+    
+    - name: 📊 Generate Repository Report
+      run: |
+        echo "📊 Generating repository report..."
+        
+        cat > REPO_REPORT.md << EOF
+        # Repository Organization Report
+        
+        **Generated on:** $(date)
+        **Branch:** ${{ github.ref_name }}
+        **Commit:** ${{ github.sha }}
+        
+        ## 📈 Repository Statistics
+        
+        - **Total Files:** $(find . -type f | wc -l)
+        - **Script Files:** $(find . -name "*.sh" | wc -l)
+        - **TypeScript Files:** $(find . -name "*.ts" -o -name "*.tsx" | wc -l)
+        - **Documentation Files:** $(find . -name "*.md" | wc -l)
+        
+        ## 📁 Directory Structure
+        
+        \`\`\`
+        $(tree -d -L 3 2>/dev/null || find . -type d | head -20 | sed 's/[^-][^\/]*\//  /g;s/^  //;s/-/|/')
+        \`\`\`
+        
+        ## 🔧 Scripts Inventory
+        
+        ### Deployment Scripts
+        $(find scripts/deployment -name "*.sh" 2>/dev/null | sed 's/^/- /' || echo "- No deployment scripts found")
+        
+        ### Database Scripts  
+        $(find scripts/database -name "*.sh" 2>/dev/null | sed 's/^/- /' || echo "- No database scripts found")
+        
+        ### Development Scripts
+        $(find scripts/development -name "*.sh" 2>/dev/null | sed 's/^/- /' || echo "- No development scripts found")
+        
+        ### Maintenance Scripts
+        $(find scripts/maintenance -name "*.sh" 2>/dev/null | sed 's/^/- /' || echo "- No maintenance scripts found")
+        
+        ## ✅ Validation Results
+        
+        - **Structure:** ✅ Organized
+        - **Permissions:** ✅ Set correctly
+        - **Essential Files:** ✅ Present
+        - **Documentation:** ✅ Generated
+        
+        ## 🎯 Next Steps
+        
+        1. Review the organized structure
+        2. Update any hardcoded paths in scripts
+        3. Test the deployment process
+        4. Update documentation as needed
+        
+        ---
+        *This report was generated automatically by the Repository Organizer action.*
+        EOF
+        
+        echo "✅ Repository report generated"
+    
+    - name: 💾 Commit Changes (if any)
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        
+        # Check if there are changes to commit
+        if [[ -n $(git status --porcelain) ]]; then
+          echo "📝 Changes detected, committing..."
+          git add .
+          git commit -m "🗂️ Auto-organize repository structure
+          
+          - Organized files into proper directories
+          - Set correct file permissions  
+          - Generated documentation
+          - Created project structure map
+          - Cleaned up duplicate files
+          
+          Generated by: Repository Organizer Action"
+          
+          echo "✅ Changes committed"
+        else
+          echo "ℹ️ No changes to commit"
+        fi
+    
+    - name: 📤 Push Changes
+      if: github.event_name != 'pull_request'
+      uses: ad-m/github-push-action@master
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        branch: ${{ github.ref }}
+    
+    - name: 💬 Create Summary
+      run: |
+        echo "## 🗂️ Repository Organization Complete! 🎉" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### ✅ Tasks Completed:" >> $GITHUB_STEP_SUMMARY
+        echo "- 📁 Created standard directory structure" >> $GITHUB_STEP_SUMMARY
+        echo "- 🔧 Organized misplaced files" >> $GITHUB_STEP_SUMMARY
+        echo "- 🔐 Set proper file permissions" >> $GITHUB_STEP_SUMMARY
+        echo "- 📝 Validated essential files" >> $GITHUB_STEP_SUMMARY
+        echo "- 🏷️ Created scripts index" >> $GITHUB_STEP_SUMMARY
+        echo "- 📋 Generated project structure map" >> $GITHUB_STEP_SUMMARY
+        echo "- 🧹 Cleaned up duplicate files" >> $GITHUB_STEP_SUMMARY
+        echo "- 📊 Generated repository report" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### 📊 Repository Stats:" >> $GITHUB_STEP_SUMMARY
+        echo "- **Total Files:** $(find . -type f | wc -l)" >> $GITHUB_STEP_SUMMARY
+        echo "- **Scripts:** $(find . -name "*.sh" | wc -l)" >> $GITHUB_STEP_SUMMARY
+        echo "- **TypeScript Files:** $(find . -name "*.ts" -o -name "*.tsx" | wc -l)" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### 🎯 What's Next:" >> $GITHUB_STEP_SUMMARY
+        echo "1. Review the new `PROJECT_STRUCTURE.md` file" >> $GITHUB_STEP_SUMMARY
+        echo "2. Check the `scripts/README.md` for script usage" >> $GITHUB_STEP_SUMMARY
+        echo "3. Run `./scripts/development/setup.sh` on new machines" >> $GITHUB_STEP_SUMMARY
+        echo "4. Deploy with `./scripts/deployment/deploy.sh`" >> $GITHUB_STEP_SUMMARY
