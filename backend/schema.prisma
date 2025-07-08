@@ -1,0 +1,92 @@
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  role      Role
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  cases     Case[]
+}
+
+model Case {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  status      CaseStatus
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+
+  // Relations
+  incidents   Incident[]
+  documents   Document[]
+  insurance   Insurance?
+  billing     Billing?
+}
+
+model Incident {
+  id        String   @id @default(cuid())
+  caseId    String
+  title     String
+  details   String?
+  date      DateTime
+  createdAt DateTime @default(now())
+
+  case      Case     @relation(fields: [caseId], references: [id])
+}
+
+model Insurance {
+  id           String   @id @default(cuid())
+  caseId       String   @unique
+  provider     String
+  policyNumber String
+  validFrom    DateTime
+  validTo      DateTime
+
+  case         Case     @relation(fields: [caseId], references: [id])
+}
+
+model Billing {
+  id          String   @id @default(cuid())
+  caseId      String   @unique
+  hourlyRate  Float
+  hoursBilled Float
+  total       Float     @default(0)
+
+  case        Case     @relation(fields: [caseId], references: [id])
+}
+
+model Document {
+  id          String   @id @default(cuid())
+  caseId      String
+  name        String
+  url         String
+  uploadedAt  DateTime @default(now())
+
+  case        Case     @relation(fields: [caseId], references: [id])
+}
+
+enum Role {
+  ADMIN
+  CLIENT
+  PROSPECTIVE
+}
+
+enum CaseStatus {
+  OPEN
+  CLOSED
+  ARCHIVED
+}
